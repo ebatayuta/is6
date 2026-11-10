@@ -1,9 +1,9 @@
 # プロジェクト概要
 
 <!-- PROJECT-CONFIG
-repository_name=
-app_name=
-app_dir=
+repository_name=is6
+app_name=nozaki
+app_dir=nozaki
 -->
 
 ## 開発者（GitHub名）
@@ -11,6 +11,9 @@ app_dir=
 `/init-project` が、GitHubから取得した最新の Collaborator 一覧でこのブロックを更新する。各Issueの担当者はGitHub上で管理する。
 
 <!-- COLLABORATORS: START -->
+- e1b24015-bit
+- e1b24029-ui
+- ebatayuta
 <!-- COLLABORATORS: END -->
 
 ## 開発するアプリケーションの条件
