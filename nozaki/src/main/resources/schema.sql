@@ -1,0 +1,8 @@
+CREATE TABLE match_info (
+    matchId VARCHAR(255) PRIMARY KEY,
+    white VARCHAR(255) NOT NULL,
+    black VARCHAR(255) NOT NULL,
+    board VARCHAR(10000) NOT NULL,
+    turn VARCHAR(32) NOT NULL,
+    state VARCHAR(32) NOT NULL
+);
