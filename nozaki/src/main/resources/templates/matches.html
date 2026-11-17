@@ -13,6 +13,9 @@
     <p>対戦ID: <span th:text="${match.matchId}"></span></p>
     <p>プレイヤー名: <span th:text="${playerName}"></span></p>
     <p>側: <span th:text="${color}"></span></p>
+    <p>盤面: <span th:text="${match.board}"></span></p>
+    <p>手番: <span th:text="${match.turn}"></span></p>
+    <p>対局状態・勝敗: <span th:text="${match.state}"></span></p>
   </section>
   <p th:if="${error}" th:text="${error}"></p>
   <form th:if="${match == null}" method="post" action="/matches/create">
@@ -25,6 +28,12 @@
     <label>対戦ID <input type="text" name="matchId" required></label>
     <label>プレイヤー名 <input type="text" name="playerName" required></label>
     <button type="submit">対局に参加</button>
+  </form>
+  <form th:if="${match == null}" method="post" action="/matches/rejoin">
+    <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <label>対戦ID <input type="text" name="matchId" required></label>
+    <label>参加時のプレイヤー名 <input type="text" name="playerName" required></label>
+    <button type="submit">再参加</button>
   </form>
 </body>
 

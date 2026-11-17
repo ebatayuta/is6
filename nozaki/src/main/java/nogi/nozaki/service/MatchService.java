@@ -36,6 +36,21 @@ public class MatchService {
     return match;
   }
 
+  public Match rejoinMatch(String matchId, String playerName) {
+    Match match = findMatch(matchId);
+    if (match == null) {
+      throw new MatchNotFoundException();
+    }
+
+    boolean isWhite = playerName.equals(match.getWhite());
+    boolean isBlack = !match.getBlack().isEmpty() && playerName.equals(match.getBlack());
+    if (!isWhite && !isBlack) {
+      throw new MatchPlayerMismatchException();
+    }
+
+    return match;
+  }
+
   public Match findMatch(String matchId) {
     return matchMapper.selectByMatchId(matchId);
   }
@@ -44,5 +59,8 @@ public class MatchService {
   }
 
   public static class MatchFullException extends RuntimeException {
+  }
+
+  public static class MatchPlayerMismatchException extends RuntimeException {
   }
 }
