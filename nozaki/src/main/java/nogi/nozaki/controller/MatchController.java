@@ -46,6 +46,20 @@ public class MatchController {
     return "redirect:/matches";
   }
 
+  @PostMapping("/matches/rejoin")
+  public String rejoin(@RequestParam String matchId, @RequestParam String playerName,
+      RedirectAttributes redirectAttributes) {
+    try {
+      matchService.rejoinMatch(matchId, playerName);
+      return redirectToMatch(matchId, playerName);
+    } catch (MatchService.MatchNotFoundException exception) {
+      redirectAttributes.addFlashAttribute("error", "対局が見つかりません。");
+    } catch (MatchService.MatchPlayerMismatchException exception) {
+      redirectAttributes.addFlashAttribute("error", "この対局に参加したプレイヤー名と一致しません。");
+    }
+    return "redirect:/matches";
+  }
+
   @GetMapping("/matches/{matchId}")
   public String match(@PathVariable String matchId, @RequestParam String playerName, Model model,
       RedirectAttributes redirectAttributes) {

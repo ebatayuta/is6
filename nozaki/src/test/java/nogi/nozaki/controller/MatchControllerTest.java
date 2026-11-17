@@ -15,6 +15,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import nogi.nozaki.model.Match;
+import nogi.nozaki.service.MatchService;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -22,6 +26,80 @@ class MatchControllerTest {
 
   @Autowired
   private MockMvc mockMvc;
+
+  @Autowired
+  private MatchService matchService;
+
+  @Autowired
+  private JdbcTemplate jdbcTemplate;
+
+  @Test
+  void whiteAndBlackPlayersCanRejoinTheirMatch() throws Exception {
+    MvcResult createResult = mockMvc.perform(post("/matches/create").param("playerName", "white-player"))
+        .andReturn();
+    String matchId = matchIdFromRedirect(createResult.getResponse().getRedirectedUrl());
+    mockMvc.perform(post("/matches/join").param("matchId", matchId).param("playerName", "black-player"));
+
+    mockMvc.perform(post("/matches/rejoin").param("matchId", matchId).param("playerName", "white-player"))
+        .andExpect(redirectedUrl("/matches/" + matchId + "?playerName=white-player"));
+    mockMvc.perform(post("/matches/rejoin").param("matchId", matchId).param("playerName", "black-player"))
+        .andExpect(redirectedUrl("/matches/" + matchId + "?playerName=black-player"));
+
+    mockMvc.perform(get("/matches/" + matchId).param("playerName", "white-player"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("白")));
+    mockMvc.perform(get("/matches/" + matchId).param("playerName", "black-player"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString(">黒</span>")));
+  }
+
+  @Test
+  void rejoinRejectsDifferentPlayerNameWithoutChangingParticipants() throws Exception {
+    MvcResult createResult = mockMvc.perform(post("/matches/create").param("playerName", "white-player"))
+        .andReturn();
+    String matchId = matchIdFromRedirect(createResult.getResponse().getRedirectedUrl());
+    mockMvc.perform(post("/matches/join").param("matchId", matchId).param("playerName", "black-player"));
+
+    MvcResult rejoinResult = mockMvc.perform(post("/matches/rejoin")
+        .param("matchId", matchId).param("playerName", "unknown-player"))
+        .andExpect(redirectedUrl("/matches"))
+        .andReturn();
+    MockHttpSession session = (MockHttpSession) rejoinResult.getRequest().getSession();
+    mockMvc.perform(get("/matches").session(session))
+        .andExpect(content().string(containsString("この対局に参加したプレイヤー名と一致しません。")));
+
+    Match match = matchService.findMatch(matchId);
+    org.junit.jupiter.api.Assertions.assertEquals("white-player", match.getWhite());
+    org.junit.jupiter.api.Assertions.assertEquals("black-player", match.getBlack());
+  }
+
+  @Test
+  void finishedMatchCanBeRejoinedWithSavedBoardTurnAndResult() throws Exception {
+    MvcResult createResult = mockMvc.perform(post("/matches/create").param("playerName", "white-player"))
+        .andReturn();
+    String matchId = matchIdFromRedirect(createResult.getResponse().getRedirectedUrl());
+    mockMvc.perform(post("/matches/join").param("matchId", matchId).param("playerName", "black-player"));
+    jdbcTemplate.update("UPDATE match_info SET board = ?, turn = ?, state = ? WHERE matchId = ?",
+        "saved-board", "black", "CHECKMATE_WHITE_WIN", matchId);
+
+    MvcResult rejoinResult = mockMvc.perform(post("/matches/rejoin")
+        .param("matchId", matchId).param("playerName", "white-player"))
+        .andExpect(status().is3xxRedirection())
+        .andReturn();
+    mockMvc.perform(get(rejoinResult.getResponse().getRedirectedUrl()))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("saved-board")))
+        .andExpect(content().string(containsString("black")))
+        .andExpect(content().string(containsString("CHECKMATE_WHITE_WIN")));
+  }
+
+  @Test
+  void matchesPageShowsRejoinForm() throws Exception {
+    mockMvc.perform(get("/matches"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("/matches/rejoin")))
+        .andExpect(content().string(containsString("再参加")));
+  }
 
   @Test
   void createMatchRedirectsToWhiteMatchPage() throws Exception {
