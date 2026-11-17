@@ -114,6 +114,21 @@ class MatchControllerTest {
         .andExpect(content().string(containsString("白")));
   }
 
+    @Test
+    void matchPageShowsInitialBoardAndWhiteTurn() throws Exception {
+        MvcResult result = mockMvc.perform(post("/matches/create").param("playerName", "white-player"))
+                .andReturn();
+        String matchId = matchIdFromRedirect(result.getResponse().getRedirectedUrl());
+
+        mockMvc.perform(get("/matches/" + matchId).param("playerName", "white-player"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("担当色")))
+                .andExpect(content().string(containsString("手番:")))
+                .andExpect(content().string(containsString("data-board")))
+                .andExpect(content().string(containsString(
+                        "rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR")));
+    }
+
   @Test
   void secondPlayerJoinsAsBlack() throws Exception {
     MvcResult createResult = mockMvc.perform(post("/matches/create").param("playerName", "white-player"))

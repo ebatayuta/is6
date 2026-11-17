@@ -4,6 +4,41 @@
 <head>
   <meta charset="UTF-8">
   <title>対局へ参加</title>
+  <style>
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 3rem);
+      grid-template-rows: repeat(8, 3rem);
+      width: 24rem;
+    }
+
+    .square {
+      border: 0;
+      font-size: 1.8rem;
+    }
+
+    .square:nth-child(16n + 1),
+    .square:nth-child(16n + 3),
+    .square:nth-child(16n + 5),
+    .square:nth-child(16n + 7),
+    .square:nth-child(16n + 10),
+    .square:nth-child(16n + 12),
+    .square:nth-child(16n + 14),
+    .square:nth-child(16n + 16) {
+      background: #f0d9b5;
+    }
+
+    .square:nth-child(16n + 2),
+    .square:nth-child(16n + 4),
+    .square:nth-child(16n + 6),
+    .square:nth-child(16n + 8),
+    .square:nth-child(16n + 9),
+    .square:nth-child(16n + 11),
+    .square:nth-child(16n + 13),
+    .square:nth-child(16n + 15) {
+      background: #b58863;
+    }
+  </style>
 </head>
 
 <body>
@@ -12,10 +47,11 @@
     <h1>対局画面</h1>
     <p>対戦ID: <span th:text="${match.matchId}"></span></p>
     <p>プレイヤー名: <span th:text="${playerName}"></span></p>
-    <p>側: <span th:text="${color}"></span></p>
-    <p>盤面: <span th:text="${match.board}"></span></p>
-    <p>手番: <span th:text="${match.turn}"></span></p>
+    <p>担当色: <span th:text="${color}"></span></p>
+    <p>手番: <span th:text="${#strings.isEmpty(match.turn) ? '白' : match.turn}"></span></p>
     <p>対局状態・勝敗: <span th:text="${match.state}"></span></p>
+    <div id="board" class="board" role="grid"
+      th:attr="data-board=${#strings.isEmpty(match.board) ? 'rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR' : match.board}"></div>
   </section>
   <p th:if="${error}" th:text="${error}"></p>
   <form th:if="${match == null}" method="post" action="/matches/create">
@@ -35,6 +71,24 @@
     <label>参加時のプレイヤー名 <input type="text" name="playerName" required></label>
     <button type="submit">再参加</button>
   </form>
+  <script th:if="${match != null}">
+    const boardElement = document.getElementById("board");
+    const pieces = {
+      "P": "♙", "N": "♘", "B": "♗", "R": "♖", "Q": "♕", "K": "♔",
+      "p": "♟", "n": "♞", "b": "♝", "r": "♜", "q": "♛", "k": "♚"
+    };
+    const board = boardElement.dataset.board;
+
+    for (let index = 0; index < board.length; index += 1) {
+      const square = document.createElement("button");
+      square.type = "button";
+      square.className = "square";
+      square.setAttribute("role", "gridcell");
+      square.setAttribute("aria-label", `盤面 ${index + 1}`);
+      square.textContent = pieces[board[index]] || "";
+      boardElement.appendChild(square);
+    }
+  </script>
 </body>
 
 </html>
