@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <title>対局へ参加</title>
+</head>
+
+<body>
+  <h1 th:if="${match == null}">対局へ参加</h1>
+  <section th:if="${match != null}">
+    <h1>対局画面</h1>
+    <p>対戦ID: <span th:text="${match.matchId}"></span></p>
+    <p>プレイヤー名: <span th:text="${playerName}"></span></p>
+    <p>側: <span th:text="${color}"></span></p>
+  </section>
+  <p th:if="${error}" th:text="${error}"></p>
+  <form th:if="${match == null}" method="post" action="/matches/create">
+    <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <label>プレイヤー名 <input type="text" name="playerName" required></label>
+    <button type="submit">対戦IDを作成</button>
+  </form>
+  <form th:if="${match == null}" method="post" action="/matches/join">
+    <input th:if="${_csrf != null}" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <label>対戦ID <input type="text" name="matchId" required></label>
+    <label>プレイヤー名 <input type="text" name="playerName" required></label>
+    <button type="submit">対局に参加</button>
+  </form>
+</body>
+
+</html>
